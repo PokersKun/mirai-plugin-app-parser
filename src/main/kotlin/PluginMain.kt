@@ -48,22 +48,24 @@ object PluginMain : KotlinPlugin(
 
         val eventChannel = GlobalEventChannel.parentScope(this)
         eventChannel.subscribeAlways<GroupMessageEvent> {
-//            if (group.id == 12345) {
+//            if (group.id ==12345L) {
                 //分类示例
                 message.forEach {
                     //循环每个元素在消息里
                     if (it is PlainText) {
-                        //如果消息这一部分是纯文本
+                        //如果消息这一部分是纯文L
                         val newMessage = it.content
                         val newGroupId = group.id
                         //复读
-                        if (newMessage == repeatMessage && newGroupId == repeatGroupId) {
+                        if (newMessage == repeatMessage && newGroupId == repeatGroupId && repeatCount == 1) {
+                            this.group.sendMessage(newMessage)
                             repeatCount++
-                            if (repeatCount >= 2) {
-                                this.group.sendMessage(newMessage)
-                                repeatCount = 0
-                            }
-                        } else {
+                        } else if (newMessage == repeatMessage && newGroupId == repeatGroupId && repeatCount > 1) {
+                            // Do nothing, already repeated once
+                        }
+                        else {
+                            // Reset repeat count and message
+
                             repeatMessage = newMessage
                             repeatGroupId = newGroupId
                             repeatCount = 1
@@ -73,17 +75,13 @@ object PluginMain : KotlinPlugin(
                         val newMessage = it.content
                         val titleRegex = "\"title\":\\s*\"(.*?)\"".toRegex() // 匹配标题
                         val qqDocUrlRegex = "\"qqdocurl\":\\s*\"(.*?)\"".toRegex() // 匹配 qqdocurl
-                        val jumpUrlRegex = "\"jumpUrl\":\\s*\"(.*?)\"".toRegex() // 匹配 jumpUrl
                         val titleMatch = titleRegex.find(newMessage)
                         val qqDocUrlMatch = qqDocUrlRegex.find(newMessage)
-                        val jumpUrlMatch = jumpUrlRegex.find(newMessage)
 
                         if (titleMatch != null) {
                             val title = titleMatch.groupValues[1]
                             val url = if (qqDocUrlMatch != null) {
                                 qqDocUrlMatch.groupValues[1]
-                            } else if (jumpUrlMatch != null) {
-                                jumpUrlMatch.groupValues[1]
                             } else {
                                 null
                             }
@@ -91,7 +89,7 @@ object PluginMain : KotlinPlugin(
                                 this.group.sendMessage("标题：$title\n链接：${url.replace("\\", "")}")
                             }
                         } else {
-                            logger.info { "No title or URL found in: $newMessage" }
+                            logger.info { "No title or qqdocurl found in: $newMessage" }
                         }
                     }
                 }
