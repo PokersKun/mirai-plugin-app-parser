@@ -48,12 +48,12 @@ object PluginMain : KotlinPlugin(
 
         val eventChannel = GlobalEventChannel.parentScope(this)
         eventChannel.subscribeAlways<GroupMessageEvent> {
-//            if (group.id ==12345L) {
+//            if (group.id == 12345L) {
                 //分类示例
                 message.forEach {
                     //循环每个元素在消息里
                     if (it is PlainText) {
-                        //如果消息这一部分是纯文L
+                        //如果消息这一部分是纯文本
                         val newMessage = it.content
                         val newGroupId = group.id
                         //复读
@@ -62,10 +62,8 @@ object PluginMain : KotlinPlugin(
                             repeatCount++
                         } else if (newMessage == repeatMessage && newGroupId == repeatGroupId && repeatCount > 1) {
                             // Do nothing, already repeated once
-                        }
-                        else {
+                        } else {
                             // Reset repeat count and message
-
                             repeatMessage = newMessage
                             repeatGroupId = newGroupId
                             repeatCount = 1
@@ -85,8 +83,9 @@ object PluginMain : KotlinPlugin(
                             } else {
                                 null
                             }
-                            if (url != null) {
-                                this.group.sendMessage("标题：$title\n链接：${url.replace("\\", "")}")
+                            url?.let {
+                                val baseUrl = it.replace("\\", "").split("?")[0]
+                                this.group.sendMessage("标题：$title\n链接：$baseUrl")
                             }
                         } else {
                             logger.info { "No title or qqdocurl found in: $newMessage" }
